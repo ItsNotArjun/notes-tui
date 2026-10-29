@@ -22,7 +22,8 @@ pub fn draw(f: &mut Frame, app: &mut App, editor_area: &mut Rect) {
         Block::default()
             .borders(Borders::ALL)
             .title(title)
-            .border_style(Style::default().fg(Color::DarkGray)),
+            .title_style(Style::default().fg(Color::Green))
+            .border_style(Style::default().fg(Color::Green)),
     );
     f.render_widget(&app.textarea, chunks[0]);
 
@@ -39,7 +40,9 @@ pub fn draw(f: &mut Frame, app: &mut App, editor_area: &mut Rect) {
             let p = Paragraph::new(text).block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title("Save As (.txt auto-added) — Enter save, Esc cancel"),
+                    .title("Save As (.txt auto-added) — Enter save, Esc cancel")
+                    .title_style(Style::default().fg(Color::Green))
+                    .border_style(Style::default().fg(Color::Green)),
             );
             f.render_widget(p, popup);
         }
@@ -50,7 +53,9 @@ pub fn draw(f: &mut Frame, app: &mut App, editor_area: &mut Rect) {
             let p = Paragraph::new(text).block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title("Confirm overwrite"),
+                    .title("Confirm overwrite")
+                    .title_style(Style::default().fg(Color::Green))
+                    .border_style(Style::default().fg(Color::Green)),
             );
             f.render_widget(p, popup);
         }
@@ -61,7 +66,9 @@ pub fn draw(f: &mut Frame, app: &mut App, editor_area: &mut Rect) {
             let p = Paragraph::new(text).block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title("Find — Ctrl+F"),
+                    .title("Find — Ctrl+F")
+                    .title_style(Style::default().fg(Color::Green))
+                    .border_style(Style::default().fg(Color::Green)),
             );
             f.render_widget(p, popup);
         }
@@ -77,7 +84,9 @@ pub fn draw(f: &mut Frame, app: &mut App, editor_area: &mut Rect) {
             let p = Paragraph::new(text).block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title("Replace — Ctrl+H"),
+                    .title("Replace — Ctrl+H")
+                    .title_style(Style::default().fg(Color::Green))
+                    .border_style(Style::default().fg(Color::Green)),
             );
             f.render_widget(p, popup);
         }
