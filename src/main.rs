@@ -25,7 +25,7 @@ use ratatui_textarea::{CursorMove, DataCursor, Input};
 fn main() -> io::Result<()> {
     let args: Vec<String> = std::env::args().collect();
     if args.iter().any(|a| a == "-h" || a == "--help") {
-        println!("notes-tui — minimal Notepad TUI\n\nUsage: notes\n\nKeys:\n  Ctrl+S save to ~/Downloads/notes/  Ctrl+N new/clear\n  Ctrl+F find  Ctrl+H replace  Ctrl+Q quit\n  Tab indent  Ctrl+Z undo  Ctrl+Shift+Z redo\n  Ctrl+Shift+C/V copy/paste  Mouse drag select");
+        println!("notes-tui — minimal Notepad TUI\n\nUsage: notes\n\nKeys:\n  Ctrl+S save to ~/Downloads/notes/  Ctrl+N new/clear\n  Ctrl+F find  Ctrl+H replace  Ctrl+Q quit\n  Tab indent  Ctrl+Z undo  Ctrl+Shift+Z redo\n  Ctrl+C/V/X or Ctrl+Shift+C/V copy/paste/cut  Ctrl+Insert/Shift+Insert also work  Mouse drag select");
         return Ok(());
     }
     if args.iter().any(|a| a == "-V" || a == "--version") {
@@ -176,6 +176,31 @@ fn handle_editing_key(app: &mut App, key: KeyEvent) {
         app.paste_from_system();
         return;
     }
+    // Most Linux terminals (GNOME Terminal, Konsole) reserve Ctrl+Shift+C/V
+    // for terminal-level copy/paste and never forward them. Provide bindings
+    // the terminal does forward: Ctrl+C/V/X + Ctrl+Insert / Shift+Insert.
+    if ctrl(&key, 'c') {
+        app.copy_to_system();
+        return;
+    }
+    if ctrl(&key, 'v') {
+        app.paste_from_system();
+        return;
+    }
+    if ctrl(&key, 'x') {
+        app.cut_to_system();
+        return;
+    }
+    if matches!(key.code, KeyCode::Insert) {
+        if key.modifiers.contains(KeyModifiers::CONTROL) {
+            app.copy_to_system();
+            return;
+        }
+        if key.modifiers.contains(KeyModifiers::SHIFT) {
+            app.paste_from_system();
+            return;
+        }
+    }
     match key.code {
         KeyCode::Tab => {
             app.insert_tab();
@@ -189,10 +214,9 @@ fn handle_editing_key(app: &mut App, key: KeyEvent) {
     }
 
     // Fall through to textarea (arrows, typing, undo via textarea defaults excluded above)
-    // Avoid double-handling Ctrl+Z when shift present already handled; let textarea handle the rest.
-    // Strip our already-handled Ctrl combos: don't pass Ctrl+S/N/Q/F/H to textarea.
+    // Avoid double-handling Ctrl combos we already handle; don't pass them to textarea.
     if key.modifiers.contains(KeyModifiers::CONTROL)
-        && matches!(key.code, KeyCode::Char(c) if "snqfhzcv".contains(c.to_ascii_lowercase()))
+        && matches!(key.code, KeyCode::Char(c) if "snqfhzcvx".contains(c.to_ascii_lowercase()))
     {
         return;
     }

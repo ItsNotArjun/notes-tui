@@ -95,6 +95,9 @@ impl App {
     }
 
     pub fn copy_to_system(&mut self) {
+        // Push current selection into textarea yank buffer first;
+        // yank_text() alone would return a stale yank.
+        self.textarea.copy();
         let selected = self.textarea.yank_text();
         if selected.is_empty() {
             self.message = "Nothing selected to copy".to_string();
@@ -109,23 +112,44 @@ impl App {
         }
     }
 
-    pub fn paste_from_system(&mut self) {
-        let text = match arboard::Clipboard::new().and_then(|mut cb| cb.get_text()) {
-            Ok(t) => t,
-            Err(_) => {
-                // Fallback to internal yank (TextArea copy buffer)
-                let yank = self.textarea.yank_text();
-                if yank.is_empty() {
-                    self.message = "Clipboard empty".to_string();
-                    return;
-                }
-                yank
-            }
-        };
-        // Normalize newlines, insert
-        let normalized = text.replace("\r\n", "\n");
-        self.textarea.insert_str(normalized);
+    pub fn cut_to_system(&mut self) {
+        if self.textarea.selection_range().is_none() {
+            self.message = "Nothing selected to cut".to_string();
+            return;
+        }
+        if !self.textarea.cut() {
+            self.message = "Nothing selected to cut".to_string();
+            return;
+        }
         self.mark_edited();
+        let yanked = self.textarea.yank_text();
+        match arboard::Clipboard::new() {
+            Ok(mut cb) => match cb.set_text(yanked) {
+                Ok(_) => self.message = "Cut to system clipboard".to_string(),
+                Err(e) => self.message = format!("Cut kept internal: {e}"),
+            },
+            Err(e) => self.message = format!("Cut kept internal: {e}"),
+        }
+    }
+
+    pub fn paste_from_system(&mut self) {
+        match arboard::Clipboard::new().and_then(|mut cb| cb.get_text()) {
+            Ok(t) => {
+                // Normalize newlines, insert
+                let normalized = t.replace("\r\n", "\n");
+                self.textarea.insert_str(normalized);
+                self.mark_edited();
+            }
+            Err(_) => {
+                // Fallback to internal yank buffer
+                if self.textarea.paste() {
+                    self.mark_edited();
+                    self.message = "Pasted (internal)".to_string();
+                } else {
+                    self.message = "Clipboard empty".to_string();
+                }
+            }
+        }
     }
 
     pub fn insert_tab(&mut self) {
@@ -439,5 +463,45 @@ mod tests {
         assert_eq!(a.lines(), vec!["hello ".to_string()]);
         a.delete_word_backward();
         assert_eq!(a.lines(), vec![String::new()]);
+    }
+
+    #[test]
+    fn copy_uses_current_selection_not_stale_yank() {
+        use ratatui_textarea::CursorMove;
+        let mut a = App::new(
+            PathBuf::from("/tmp/notes-tui-test-autosave.txt"),
+            PathBuf::from("/tmp/notes-tui-test-export"),
+            vec!["hello world".to_string()],
+        );
+        // Select "hello" via cursor moves, then copy must yank "hello"
+        // even though yank buffer was empty before.
+        assert_eq!(a.textarea.yank_text(), "");
+        a.textarea.move_cursor(CursorMove::Jump(0, 0));
+        a.textarea.start_selection();
+        a.textarea.move_cursor(CursorMove::Forward);
+        a.textarea.move_cursor(CursorMove::Forward);
+        a.textarea.move_cursor(CursorMove::Forward);
+        a.textarea.move_cursor(CursorMove::Forward);
+        a.textarea.move_cursor(CursorMove::Forward);
+        a.copy_to_system();
+        assert_eq!(a.textarea.yank_text(), "hello");
+    }
+
+    #[test]
+    fn cut_deletes_selection_and_yanks() {
+        use ratatui_textarea::CursorMove;
+        let mut a = App::new(
+            PathBuf::from("/tmp/notes-tui-test-autosave.txt"),
+            PathBuf::from("/tmp/notes-tui-test-export"),
+            vec!["hello world".to_string()],
+        );
+        a.textarea.move_cursor(CursorMove::Jump(0, 0));
+        a.textarea.start_selection();
+        for _ in 0..5 {
+            a.textarea.move_cursor(CursorMove::Forward);
+        }
+        a.cut_to_system();
+        assert_eq!(a.lines(), vec![" world".to_string()]);
+        assert_eq!(a.textarea.yank_text(), "hello");
     }
 }

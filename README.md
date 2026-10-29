@@ -83,10 +83,15 @@ notes --help
 
 ### Clipboard backends
 
-`Ctrl+Shift+C/V` uses the system clipboard via `arboard`, with internal fallback.
+Copy/paste uses the system clipboard via `arboard`, with internal fallback.
 
 - Wayland: `sudo dnf install wl-clipboard` / `sudo apt install wl-clipboard`
 - X11: `sudo dnf install xclip` / `sudo apt install xclip`
+- Headless/SSH: falls back to internal yank buffer.
+
+> Most terminals reserve `Ctrl+Shift+C/V` for themselves and never send them
+> to TUIs. Use `Ctrl+C` / `Ctrl+V` / `Ctrl+X` (or `Ctrl+Insert` /
+> `Shift+Insert`) inside `notes` — those are forwarded and sync to system.
 - Headless/SSH without clipboard: copy still works internally, paste falls back to internal yank.
 
 ### Terminal notes
@@ -122,7 +127,7 @@ notes --version
 - Type / Arrows: edit + move
 - Mouse click: move cursor, drag: select
 - `Tab` / `Shift+Tab`: indent / dedent (4 spaces)
-- `Ctrl+Shift+C` / `Ctrl+Shift+V`: copy / paste
+- `Ctrl+C` / `Ctrl+V` / `Ctrl+X`: copy / paste / cut (system clipboard, internal fallback). `Ctrl+Shift+C/V` and `Ctrl+Insert` / `Shift+Insert` also work where the terminal forwards them.
 - `Ctrl+Z` / `Ctrl+Shift+Z`: undo / redo
 - `Ctrl+Backspace` (or `Ctrl+W`): delete word backward
 - `Ctrl+S`: Save As prompt — always to `~/Downloads/notes/<name>.txt`
