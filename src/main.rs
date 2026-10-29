@@ -136,6 +136,12 @@ fn handle_editing_key(app: &mut App, key: KeyEvent) {
         app.delete_word_backward();
         return;
     }
+    if matches!(key.code, KeyCode::Delete)
+        && key.modifiers.contains(KeyModifiers::CONTROL)
+    {
+        app.delete_word_forward();
+        return;
+    }
     // Custom global keys first
     if ctrl(&key, 'n') {
         app.clear_buffer();
@@ -261,6 +267,9 @@ fn handle_save_prompt_key(app: &mut App, key: KeyEvent) {
                 app.save_input.pop();
             }
         }
+        // Prompt inputs are append-only (cursor at end), so forward delete
+        // is a no-op by definition. Explicit arm documents intent.
+        KeyCode::Delete => {}
         KeyCode::Char(c) => {
             if !key.modifiers.contains(KeyModifiers::CONTROL)
                 && !key.modifiers.contains(KeyModifiers::ALT)
@@ -296,6 +305,8 @@ fn handle_find_key(app: &mut App, key: KeyEvent) {
             }
             app.apply_find(false);
         }
+        // Append-only input: forward delete at end is a no-op.
+        KeyCode::Delete => {}
         KeyCode::Char(c) => {
             if !key.modifiers.contains(KeyModifiers::CONTROL)
                 && !key.modifiers.contains(KeyModifiers::ALT)
@@ -338,6 +349,8 @@ fn handle_replace_key(app: &mut App, key: KeyEvent) {
                 app.replace_input.pop();
             }
         }
+        // Append-only input: forward delete at end is a no-op.
+        KeyCode::Delete => {}
         KeyCode::Char(c) => {
             if key.modifiers.contains(KeyModifiers::CONTROL)
                 || key.modifiers.contains(KeyModifiers::ALT)

@@ -130,7 +130,7 @@ notes --version
 - `Tab` / `Shift+Tab`: indent / dedent (4 spaces)
 - `Ctrl+C` / `Ctrl+V` / `Ctrl+X`: copy / paste / cut (system clipboard, internal fallback). `Ctrl+Shift+C/V` and `Ctrl+Insert` / `Shift+Insert` also work where the terminal forwards them.
 - `Ctrl+Z` / `Ctrl+Shift+Z`: undo / redo
-- `Ctrl+Backspace` (or `Ctrl+W`): delete word backward
+- `Ctrl+Backspace` (or `Ctrl+W`): delete word backward — `Ctrl+Delete`: delete word forward
 - `Ctrl+S`: Save As prompt — always to `~/Downloads/notes/<name>.txt`
 - `Ctrl+N`: clear/new (view cleared, old autosave kept until next typing)
 - `Ctrl+F`: find popup, `Enter` next
@@ -160,7 +160,7 @@ cargo build
 ./target/debug/notes --help
 ```
 
-16 unit tests: storage roundtrip, sanitize, overwrite guard, find positions/unicode/wrap, replace counts, clear + tab, find-highlight clear, word delete, copy/cut selection.
+17 unit tests: storage roundtrip, sanitize, overwrite guard, find positions/unicode/wrap, replace counts, clear + tab, find-highlight clear, word delete backward/forward, copy/cut selection.
 
 ## Troubleshooting
 

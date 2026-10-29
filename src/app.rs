@@ -206,6 +206,12 @@ impl App {
         }
     }
 
+    pub fn delete_word_forward(&mut self) {
+        if self.textarea.delete_next_word() {
+            self.mark_edited();
+        }
+    }
+
     pub fn redo(&mut self) {
         if self.textarea.redo() {
             self.mark_edited();
@@ -462,6 +468,20 @@ mod tests {
         a.delete_word_backward();
         assert_eq!(a.lines(), vec!["hello ".to_string()]);
         a.delete_word_backward();
+        assert_eq!(a.lines(), vec![String::new()]);
+    }
+
+    #[test]
+    fn ctrl_delete_deletes_word_forward() {
+        let mut a = App::new(
+            PathBuf::from("/tmp/notes-tui-test-autosave.txt"),
+            PathBuf::from("/tmp/notes-tui-test-export"),
+            vec!["hello world".to_string()],
+        );
+        a.textarea.move_cursor(CursorMove::Jump(0, 0));
+        a.delete_word_forward();
+        assert_eq!(a.lines(), vec![" world".to_string()]);
+        a.delete_word_forward();
         assert_eq!(a.lines(), vec![String::new()]);
     }
 
