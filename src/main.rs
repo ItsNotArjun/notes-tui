@@ -17,7 +17,8 @@ use ratatui::crossterm::event::{
 use ratatui::crossterm::terminal::{
     EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
 };
-use ratatui::crossterm::{execute};
+use ratatui::crossterm::cursor::SetCursorStyle;
+use ratatui::crossterm::execute;
 use ratatui::layout::{Position, Rect};
 use ratatui_textarea::{CursorMove, DataCursor, Input};
 
@@ -50,12 +51,18 @@ fn main() -> io::Result<()> {
     );
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
+    // Bar cursor while editing (steady, Notepad-like).
+    let _ = execute!(terminal.backend_mut(), SetCursorStyle::SteadyBar);
 
     let mut editor_area = Rect::default();
     let res = run(&mut terminal, &mut app, &mut editor_area);
 
     disable_raw_mode()?;
     let _ = execute!(terminal.backend_mut(), PopKeyboardEnhancementFlags);
+    let _ = execute!(
+        terminal.backend_mut(),
+        SetCursorStyle::DefaultUserShape
+    );
     execute!(
         terminal.backend_mut(),
         LeaveAlternateScreen,
