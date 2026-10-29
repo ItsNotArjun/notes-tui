@@ -21,6 +21,15 @@ use ratatui::layout::{Position, Rect};
 use ratatui_textarea::{CursorMove, DataCursor, Input};
 
 fn main() -> io::Result<()> {
+    let args: Vec<String> = std::env::args().collect();
+    if args.iter().any(|a| a == "-h" || a == "--help") {
+        println!("notes-tui — minimal Notepad TUI\n\nUsage: notes\n\nKeys:\n  Ctrl+S save to ~/Downloads/notes/  Ctrl+N new/clear\n  Ctrl+F find  Ctrl+H replace  Ctrl+Q quit\n  Tab indent  Ctrl+Z undo  Ctrl+Shift+Z redo\n  Ctrl+Shift+C/V copy/paste  Mouse drag select");
+        return Ok(());
+    }
+    if args.iter().any(|a| a == "-V" || a == "--version") {
+        println!("notes-tui {}", env!("CARGO_PKG_VERSION"));
+        return Ok(());
+    }
     let autosave_path = storage::autosave_path();
     let export_dir = storage::export_dir();
     let initial = storage::load_autosave(&autosave_path);

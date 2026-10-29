@@ -3,6 +3,10 @@ name = "notes-tui"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "notes"
+path = "src/main.rs"
+
 [dependencies]
 arboard = "3.7.0"
 crossterm = "0.29.0"
