@@ -1,5 +1,7 @@
 # notes-tui — Minimal Rust Notepad TUI
 
+![notes-tui demo](demo_image.png)
+
 Single-buffer Notepad clone in the terminal. Autosaves to a hidden file, exports to `~/Downloads/notes/`, no open dialog.
 
 Linux only (`x86_64` / `aarch64`). Requires a mouse-enabled terminal.
@@ -92,7 +94,6 @@ Copy/paste uses the system clipboard via `arboard`, with internal fallback.
 > Most terminals reserve `Ctrl+Shift+C/V` for themselves and never send them
 > to TUIs. Use `Ctrl+C` / `Ctrl+V` / `Ctrl+X` (or `Ctrl+Insert` /
 > `Shift+Insert`) inside `notes` — those are forwarded and sync to system.
-- Headless/SSH without clipboard: copy still works internally, paste falls back to internal yank.
 
 ### Terminal notes
 
@@ -159,7 +160,7 @@ cargo build
 ./target/debug/notes --help
 ```
 
-14 unit tests: storage roundtrip, sanitize, overwrite guard, find positions/unicode/wrap, replace counts, clear + tab, find-highlight clear, word delete.
+16 unit tests: storage roundtrip, sanitize, overwrite guard, find positions/unicode/wrap, replace counts, clear + tab, find-highlight clear, word delete, copy/cut selection.
 
 ## Troubleshooting
 
