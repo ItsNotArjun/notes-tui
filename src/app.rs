@@ -174,6 +174,12 @@ impl App {
         }
     }
 
+    pub fn delete_word_backward(&mut self) {
+        if self.textarea.delete_word() {
+            self.mark_edited();
+        }
+    }
+
     pub fn redo(&mut self) {
         if self.textarea.redo() {
             self.mark_edited();
@@ -414,5 +420,20 @@ mod tests {
         a.find_input.clear();
         a.apply_find(false);
         assert!(a.textarea.search_pattern().is_none());
+    }
+
+    #[test]
+    fn ctrl_backspace_deletes_word() {
+        let mut a = App::new(
+            PathBuf::from("/tmp/notes-tui-test-autosave.txt"),
+            PathBuf::from("/tmp/notes-tui-test-export"),
+            vec!["hello world".to_string()],
+        );
+        a.textarea
+            .move_cursor(CursorMove::Jump(0, 11));
+        a.delete_word_backward();
+        assert_eq!(a.lines(), vec!["hello ".to_string()]);
+        a.delete_word_backward();
+        assert_eq!(a.lines(), vec![String::new()]);
     }
 }

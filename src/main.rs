@@ -144,6 +144,12 @@ fn handle_editing_key(app: &mut App, key: KeyEvent) {
         app.paste_from_system();
         return;
     }
+    if matches!(key.code, KeyCode::Backspace)
+        && key.modifiers.contains(KeyModifiers::CONTROL)
+    {
+        app.delete_word_backward();
+        return;
+    }
     match key.code {
         KeyCode::Tab => {
             app.insert_tab();
@@ -171,6 +177,25 @@ fn handle_editing_key(app: &mut App, key: KeyEvent) {
     }
 }
 
+fn delete_word_backward_str(s: &mut String) {
+    if s.is_empty() {
+        return;
+    }
+    // Remove one trailing-space run, else one word run.
+    if s.ends_with(char::is_whitespace) {
+        while s.ends_with(char::is_whitespace) {
+            s.pop();
+        }
+    } else {
+        while let Some(c) = s.chars().last() {
+            if c.is_whitespace() {
+                break;
+            }
+            s.pop();
+        }
+    }
+}
+
 fn handle_save_prompt_key(app: &mut App, key: KeyEvent) {
     match key.code {
         KeyCode::Esc => {
@@ -180,7 +205,11 @@ fn handle_save_prompt_key(app: &mut App, key: KeyEvent) {
         }
         KeyCode::Enter => app.confirm_save(),
         KeyCode::Backspace => {
-            app.save_input.pop();
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                delete_word_backward_str(&mut app.save_input);
+            } else {
+                app.save_input.pop();
+            }
         }
         KeyCode::Char(c) => {
             if !key.modifiers.contains(KeyModifiers::CONTROL)
@@ -210,7 +239,11 @@ fn handle_find_key(app: &mut App, key: KeyEvent) {
         }
         KeyCode::Enter => app.apply_find(true),
         KeyCode::Backspace => {
-            app.find_input.pop();
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                delete_word_backward_str(&mut app.find_input);
+            } else {
+                app.find_input.pop();
+            }
             app.apply_find(false);
         }
         KeyCode::Char(c) => {
@@ -243,7 +276,13 @@ fn handle_replace_key(app: &mut App, key: KeyEvent) {
         }
         KeyCode::Enter => app.apply_replace_current(),
         KeyCode::Backspace => {
-            if app.replace_focus_find {
+            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                if app.replace_focus_find {
+                    delete_word_backward_str(&mut app.find_input);
+                } else {
+                    delete_word_backward_str(&mut app.replace_input);
+                }
+            } else if app.replace_focus_find {
                 app.find_input.pop();
             } else {
                 app.replace_input.pop();
