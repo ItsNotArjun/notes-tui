@@ -11,7 +11,8 @@ use ratatui::Terminal;
 use ratatui::backend::CrosstermBackend;
 use ratatui::crossterm::event::{
     self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, KeyModifiers,
-    MouseButton, MouseEvent, MouseEventKind,
+    KeyboardEnhancementFlags, MouseButton, MouseEvent, MouseEventKind, PopKeyboardEnhancementFlags,
+    PushKeyboardEnhancementFlags,
 };
 use ratatui::crossterm::terminal::{
     EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
@@ -38,6 +39,15 @@ fn main() -> io::Result<()> {
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+    // Ask modern terminals (Kitty protocol) to disambiguate Ctrl+Backspace vs Ctrl+H.
+    // Ignore errors — legacy terminals just won't get distinct codes.
+    let _ = execute!(
+        stdout,
+        PushKeyboardEnhancementFlags(
+            KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES
+                | KeyboardEnhancementFlags::REPORT_ALTERNATE_KEYS
+        )
+    );
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
@@ -45,6 +55,7 @@ fn main() -> io::Result<()> {
     let res = run(&mut terminal, &mut app, &mut editor_area);
 
     disable_raw_mode()?;
+    let _ = execute!(terminal.backend_mut(), PopKeyboardEnhancementFlags);
     execute!(
         terminal.backend_mut(),
         LeaveAlternateScreen,
@@ -104,6 +115,20 @@ fn handle_key(app: &mut App, key: KeyEvent) {
 }
 
 fn handle_editing_key(app: &mut App, key: KeyEvent) {
+    // Ctrl+Backspace must win over Ctrl+H on terminals that conflate them (0x08).
+    // With Kitty DISAMBIGUATE flag they arrive distinct; without it, Backspace check
+    // still catches the Backspace keycode variant.
+    if matches!(key.code, KeyCode::Backspace)
+        && key.modifiers.contains(KeyModifiers::CONTROL)
+    {
+        app.delete_word_backward();
+        return;
+    }
+    // Ctrl+W is the classic terminal word-delete — alias for the same action.
+    if ctrl(&key, 'w') {
+        app.delete_word_backward();
+        return;
+    }
     // Custom global keys first
     if ctrl(&key, 'n') {
         app.clear_buffer();
@@ -142,12 +167,6 @@ fn handle_editing_key(app: &mut App, key: KeyEvent) {
     }
     if ctrl_shift(&key, 'v') {
         app.paste_from_system();
-        return;
-    }
-    if matches!(key.code, KeyCode::Backspace)
-        && key.modifiers.contains(KeyModifiers::CONTROL)
-    {
-        app.delete_word_backward();
         return;
     }
     match key.code {
