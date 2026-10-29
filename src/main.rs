@@ -206,8 +206,7 @@ fn handle_overwrite_key(app: &mut App, key: KeyEvent) {
 fn handle_find_key(app: &mut App, key: KeyEvent) {
     match key.code {
         KeyCode::Esc => {
-            app.mode = Mode::Editing;
-            app.message = "Find closed".to_string();
+            app.close_find();
         }
         KeyCode::Enter => app.apply_find(true),
         KeyCode::Backspace => {
@@ -237,8 +236,7 @@ fn handle_replace_key(app: &mut App, key: KeyEvent) {
     }
     match key.code {
         KeyCode::Esc => {
-            app.mode = Mode::Editing;
-            app.message = "Replace closed".to_string();
+            app.close_replace();
         }
         KeyCode::Tab | KeyCode::BackTab => {
             app.replace_focus_find = !app.replace_focus_find;

@@ -240,6 +240,18 @@ impl App {
         self.mode = Mode::FindPrompt;
     }
 
+    pub fn close_find(&mut self) {
+        let _ = self.textarea.set_search_pattern("");
+        self.mode = Mode::Editing;
+        self.message = "Find closed".to_string();
+    }
+
+    pub fn close_replace(&mut self) {
+        let _ = self.textarea.set_search_pattern("");
+        self.mode = Mode::Editing;
+        self.message = "Replace closed".to_string();
+    }
+
     pub fn start_replace(&mut self) {
         self.replace_focus_find = true;
         self.mode = Mode::ReplacePrompt;
@@ -248,6 +260,7 @@ impl App {
     pub fn apply_find(&mut self, jump_next: bool) {
         let q = self.find_input.clone();
         if q.is_empty() {
+            let _ = self.textarea.set_search_pattern("");
             self.message = "Find: type text, Enter for next".to_string();
             return;
         }
@@ -380,5 +393,26 @@ mod tests {
         let mut a = test_app();
         a.insert_tab();
         assert!(a.lines()[0].contains("    "));
+    }
+
+    #[test]
+    fn close_find_clears_highlight() {
+        let mut a = test_app();
+        a.find_input = "hello".to_string();
+        a.apply_find(false);
+        assert!(a.textarea.search_pattern().is_some());
+        a.close_find();
+        assert!(a.textarea.search_pattern().is_none());
+    }
+
+    #[test]
+    fn empty_query_clears_highlight() {
+        let mut a = test_app();
+        a.find_input = "hello".to_string();
+        a.apply_find(false);
+        assert!(a.textarea.search_pattern().is_some());
+        a.find_input.clear();
+        a.apply_find(false);
+        assert!(a.textarea.search_pattern().is_none());
     }
 }
