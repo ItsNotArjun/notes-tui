@@ -2,7 +2,9 @@
 
 ![notes-tui demo](demo_image.png)
 
-Single-buffer Notepad clone in the terminal. Autosaves to a hidden file, exports to `~/Downloads/notes/`, no open dialog.
+A quick single use notepad to jot stuff down. Inspired by the original microsoft notepad.
+
+History is remembered by default, .txt is saved to `~/Downloads/notes/` if required. 
 
 Linux only (`x86_64` / `aarch64`). Requires a mouse-enabled terminal.
 
