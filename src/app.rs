@@ -39,6 +39,8 @@ impl App {
         textarea.set_hard_tab_indent(false);
         textarea.set_line_number_style(Style::default().fg(Color::Green));
         textarea.set_cursor_line_style(Style::default());
+        // Hide widget fake block cursor — use real terminal I-beam instead.
+        textarea.set_cursor_style(Style::default());
         textarea.set_selection_style(Style::default().bg(Color::Blue).fg(Color::White));
         textarea.set_wrap_mode(ratatui_textarea::WrapMode::WordOrGlyph);
         Self {
@@ -364,6 +366,8 @@ fn rebuild_textarea(old: TextArea<'static>, lines: &[String]) -> TextArea<'stati
     t.set_tab_length(4);
     t.set_hard_tab_indent(false);
     t.set_line_number_style(ratatui::style::Style::default().fg(ratatui::style::Color::Green));
+    t.set_cursor_line_style(ratatui::style::Style::default());
+    t.set_cursor_style(ratatui::style::Style::default());
     t.set_selection_style(
         ratatui::style::Style::default()
             .bg(ratatui::style::Color::Blue)

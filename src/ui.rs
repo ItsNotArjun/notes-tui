@@ -1,4 +1,4 @@
-use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
+use ratatui::layout::{Alignment, Constraint, Direction, Layout, Position, Rect};
 use ratatui::style::{Color, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Clear, Paragraph};
@@ -26,6 +26,27 @@ pub fn draw(f: &mut Frame, app: &mut App, editor_area: &mut Rect) {
             .border_style(Style::default().fg(Color::Green)),
     );
     f.render_widget(&app.textarea, chunks[0]);
+    // Real terminal I-beam cursor (widget fake block hidden via cursor_style).
+    // Maps textarea screen cursor back to terminal coords (inverse of mouse click).
+    if matches!(app.mode, Mode::Editing) {
+        let screen = app.textarea.screen_cursor();
+        let (top_row, top_col) = app.textarea.scroll_offset();
+        let inner = app
+            .textarea
+            .block()
+            .map_or(chunks[0], |b| b.inner(chunks[0]));
+        let x = inner
+            .x
+            .saturating_add(app.textarea.line_number_width())
+            .saturating_add((screen.col as u16).saturating_sub(top_col));
+        let y = inner
+            .y
+            .saturating_add((screen.row as u16).saturating_sub(top_row));
+        if x < inner.x.saturating_add(inner.width) && y < inner.y.saturating_add(inner.height)
+        {
+            f.set_cursor_position(Position::new(x, y));
+        }
+    }
 
     let status = Paragraph::new(Line::from(vec![Span::raw(app.message.clone())]))
         .style(Style::default().fg(Color::Gray).bg(Color::Black))
